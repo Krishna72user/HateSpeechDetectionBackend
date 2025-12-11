@@ -4,6 +4,7 @@ import numpy as np
 from fastapi import HTTPException
 from pydantic import BaseModel
 from utils.preprocess import preprocess
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 model = load_model("model/hate_speech_model.h5")
@@ -15,6 +16,13 @@ class TextInput(BaseModel):
 class ListInput(BaseModel):
     data: list
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
