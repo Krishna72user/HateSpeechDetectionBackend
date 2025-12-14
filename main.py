@@ -3,12 +3,11 @@ from tensorflow.keras.models import load_model
 import numpy as np
 from fastapi import HTTPException
 from pydantic import BaseModel
-from utils.preprocess import preprocess
 from fastapi.middleware.cors import CORSMiddleware
+from controllers.predict import predict_hate
 
 app = FastAPI()
-model = load_model("model/hate_speech_model.h5")
-threshold = 0.86
+
 
 class TextInput(BaseModel):
     text: str
@@ -31,8 +30,7 @@ async def root():
 @app.post('/api/predict_one/')
 async def predict(data:TextInput):
     try:
-        test = preprocess(data.text)
-        pred =1  if model.predict(test)>=threshold else 0
+        pred = predict_hate(data.text)
         return {"query": data.text,"prediction":"HATE SPEECH" if pred==1 else "NOT HATE SPEECH"}
     except Exception as e:
         raise HTTPException(
@@ -45,8 +43,7 @@ async def predict_many(data:ListInput):
     try:
         processed=[]
         for text in data.data:
-            pro_text = preprocess(text)
-            pred =1  if model.predict(pro_text)>=threshold else 0
+            pred = predict_hate(text)
             processed.append({"query": text,"prediction":"HATE SPEECH" if pred==1 else "NOT HATE SPEECH"})
         return {"predictions":processed}
     except Exception as e:
